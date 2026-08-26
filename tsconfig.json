@@ -3,5 +3,14 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  /**
+   * used for shadcn ui cli
+   */
+  "compilerOptions": {
+    "paths": {
+      "@shared/*": ["./shared/*"],
+      "@demos/*": ["./demos/*"]
+    }
+  }
 }
