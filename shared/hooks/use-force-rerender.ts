@@ -9,7 +9,7 @@ export type Rerender = <T extends (...args: any[]) => any>(
  * calls `fn` and then forces a re-render. Use it to wrap model methods that
  * mutate non-React state, so the UI refreshes after each call.
  */
-export function useAutoRerender(): Rerender {
+export function useForceRerender(): Rerender {
   const [, forceRerender] = useState({})
   return useMemo(
     () =>
