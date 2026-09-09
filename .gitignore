@@ -8,3 +8,6 @@ yarn.lock
 bun.lock
 
 __*
+
+.vscode
+.trae
