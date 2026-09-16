@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
-import { Shadcn } from '@shared/components/ui'
 import { Lucide } from '@shared/components/icons'
+import { Shadcn } from '@shared/components/ui'
 import { encodeShareData, formatDuration } from '../utils'
 import type { ModelProps } from '../model'
 

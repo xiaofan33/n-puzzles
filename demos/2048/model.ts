@@ -16,7 +16,7 @@ type LineConfig = {
 export interface TileState extends Position {
   id?: number
   value: number
-  // Whether this tile was generated at the start of a new game
+  // whether this tile was generated at the start of a new game
   isInitial?: boolean
 }
 
