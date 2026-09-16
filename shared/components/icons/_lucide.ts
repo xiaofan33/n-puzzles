@@ -6,6 +6,12 @@ export {
   Flag,
   Grid2X2,
   Link,
+  Lock,
+  Minus,
+  Paintbrush,
+  Plus,
+  Repeat1,
+  Ruler,
   Share2,
   Timer,
 } from 'lucide-react'

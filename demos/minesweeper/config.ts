@@ -15,6 +15,19 @@ export const presetList: readonly Preset[] = [
 
 export const defaultPreset = presetList[0]
 
+export function findPreset(board: BoardConfig): Preset | undefined
+export function findPreset(id: string): Preset | undefined
+export function findPreset(input: BoardConfig | string) {
+  if (typeof input === 'string') {
+    return presetList.find(d => d.id === input)
+  }
+  const { w, h, m } = input
+  return presetList.find(
+    ({ boardConfig }) =>
+      boardConfig.w === w && boardConfig.h === h && boardConfig.m === m,
+  )
+}
+
 export const palettes = [
   'orange',
   'amber',
@@ -67,9 +80,17 @@ export const glyphs = {
   flag: '🚩',
   mine: '💣',
   boom: '💥',
-  misflagged: '❌',
   timer: '⏱️',
   blank: '',
+  '0': '0',
+  '1': '1',
+  '2': '2',
+  '3': '3',
+  '4': '4',
+  '5': '5',
+  '6': '6',
+  '7': '7',
+  '8': '8',
 } as const
 
 export const limits = {

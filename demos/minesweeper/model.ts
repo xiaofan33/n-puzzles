@@ -167,6 +167,10 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
     return cell.adjacentMineCount
   }
 
+  function getElapsedMs() {
+    return timer.value
+  }
+
   function getCellMasks() {
     const result: number[] = []
     for (const c of cells) {
@@ -287,6 +291,7 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
     operate,
     revealAll,
     toCells2D,
+    getElapsedMs,
     getCellMasks,
     getAdjacentCells,
     get boardConfig() {
@@ -294,9 +299,6 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
     },
     get phase() {
       return phase
-    },
-    get elapsedMs() {
-      return timer.value
     },
     get flagCount() {
       return flagIndices.size

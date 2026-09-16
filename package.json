@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
+    "gen-icon": "node ./scripts/gen-icon-index.mjs",
     "test": "vitest",
     "format": "prettier --write ."
   },

@@ -13,11 +13,11 @@ export function useModel() {
     boardConfig,
     cells,
     phase: m.phase,
-    elapsedMs: m.elapsedMs,
     flagCount: m.flagCount,
     restore: rerender(m.restore),
     restart: rerender(m.restart),
     operate: rerender(m.operate),
+    getElapsedMs: m.getElapsedMs,
     getCellMasks: m.getCellMasks,
     getAdjacentCells: m.getAdjacentCells,
   }

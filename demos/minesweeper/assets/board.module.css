@@ -1,0 +1,269 @@
+.boom-shake {
+  animation: shake 0.25s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(-2px, -2px);
+  }
+
+  50% {
+    transform: translate(2px, 2px);
+  }
+
+  75% {
+    transform: translate(-2px, 2px);
+  }
+}
+
+[data-code='0'] {
+  color: transparent;
+}
+
+[data-code='1'] {
+  color: var(--color-blue-500);
+}
+
+[data-code='2'] {
+  color: var(--color-green-500);
+}
+
+[data-code='3'] {
+  color: var(--color-red-500);
+}
+
+[data-code='4'] {
+  color: var(--color-indigo-500);
+}
+
+[data-code='5'] {
+  color: var(--color-orange-500);
+}
+
+[data-code='6'] {
+  color: var(--color-purple-500);
+}
+
+[data-code='7'] {
+  color: var(--color-teal-500);
+}
+
+[data-code='8'] {
+  color: var(--color-pink-500);
+}
+
+/** 'hi' means 'highlight'  */
+[data-palette='orange'] {
+  --accent-soft: var(--color-orange-300);
+  --accent-deep: var(--color-orange-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-orange-50);
+  --cell-hi-to: var(--color-orange-100);
+}
+
+[data-palette='amber'] {
+  --accent-soft: var(--color-amber-300);
+  --accent-deep: var(--color-amber-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-amber-50);
+  --cell-hi-to: var(--color-amber-100);
+}
+
+[data-palette='yellow'] {
+  --accent-soft: var(--color-yellow-300);
+  --accent-deep: var(--color-yellow-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-yellow-50);
+  --cell-hi-to: var(--color-yellow-100);
+}
+
+[data-palette='lime'] {
+  --accent-soft: var(--color-lime-300);
+  --accent-deep: var(--color-lime-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-lime-50);
+  --cell-hi-to: var(--color-lime-100);
+}
+
+[data-palette='green'] {
+  --accent-soft: var(--color-green-300);
+  --accent-deep: var(--color-green-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-green-50);
+  --cell-hi-to: var(--color-green-100);
+}
+
+[data-palette='emerald'] {
+  --accent-soft: var(--color-emerald-300);
+  --accent-deep: var(--color-emerald-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-emerald-50);
+  --cell-hi-to: var(--color-emerald-100);
+}
+
+[data-palette='teal'] {
+  --accent-soft: var(--color-teal-300);
+  --accent-deep: var(--color-teal-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-teal-50);
+  --cell-hi-to: var(--color-teal-100);
+}
+
+[data-palette='cyan'] {
+  --accent-soft: var(--color-cyan-300);
+  --accent-deep: var(--color-cyan-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-cyan-50);
+  --cell-hi-to: var(--color-cyan-100);
+}
+
+[data-palette='sky'] {
+  --accent-soft: var(--color-sky-300);
+  --accent-deep: var(--color-sky-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-sky-50);
+  --cell-hi-to: var(--color-sky-100);
+}
+
+[data-palette='blue'] {
+  --accent-soft: var(--color-blue-300);
+  --accent-deep: var(--color-blue-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-blue-50);
+  --cell-hi-to: var(--color-blue-100);
+}
+
+[data-palette='indigo'] {
+  --accent-soft: var(--color-indigo-300);
+  --accent-deep: var(--color-indigo-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-indigo-50);
+  --cell-hi-to: var(--color-indigo-100);
+}
+
+[data-palette='violet'] {
+  --accent-soft: var(--color-violet-300);
+  --accent-deep: var(--color-violet-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-violet-50);
+  --cell-hi-to: var(--color-violet-100);
+}
+
+[data-palette='purple'] {
+  --accent-soft: var(--color-purple-300);
+  --accent-deep: var(--color-purple-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-purple-50);
+  --cell-hi-to: var(--color-purple-100);
+}
+
+[data-palette='fuchsia'] {
+  --accent-soft: var(--color-fuchsia-300);
+  --accent-deep: var(--color-fuchsia-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-fuchsia-50);
+  --cell-hi-to: var(--color-fuchsia-100);
+}
+
+[data-palette='pink'] {
+  --accent-soft: var(--color-pink-300);
+  --accent-deep: var(--color-pink-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-pink-50);
+  --cell-hi-to: var(--color-pink-100);
+}
+
+[data-palette='rose'] {
+  --accent-soft: var(--color-rose-300);
+  --accent-deep: var(--color-rose-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-rose-50);
+  --cell-hi-to: var(--color-rose-100);
+}
+
+[data-palette='slate'] {
+  --accent-soft: var(--color-slate-300);
+  --accent-deep: var(--color-slate-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-slate-50);
+  --cell-hi-to: var(--color-slate-100);
+}
+
+[data-palette='gray'] {
+  --accent-soft: var(--color-gray-300);
+  --accent-deep: var(--color-gray-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-gray-50);
+  --cell-hi-to: var(--color-gray-100);
+}
+
+[data-palette='zinc'] {
+  --accent-soft: var(--color-zinc-300);
+  --accent-deep: var(--color-zinc-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-zinc-50);
+  --cell-hi-to: var(--color-zinc-100);
+}
+
+[data-palette='neutral'] {
+  --accent-soft: var(--color-neutral-300);
+  --accent-deep: var(--color-neutral-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-neutral-50);
+  --cell-hi-to: var(--color-neutral-100);
+}
+
+[data-palette='stone'] {
+  --accent-soft: var(--color-stone-300);
+  --accent-deep: var(--color-stone-400);
+  --cell-border: var(--accent-deep);
+  --cell-from: color-mix(in oklch, var(--accent-soft) 80%, transparent);
+  --cell-to: color-mix(in oklch, var(--accent-deep) 80%, transparent);
+  --cell-hi-from: var(--color-stone-50);
+  --cell-hi-to: var(--color-stone-100);
+}
