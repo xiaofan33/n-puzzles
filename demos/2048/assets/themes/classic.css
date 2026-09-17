@@ -1,0 +1,95 @@
+[data-tile-theme='classic'] {
+  --color-board: #9c8877;
+  --color-blank: #bdac97;
+
+  --tile-2-bg: #f7f4ef;
+  --tile-2-fg: #645b52;
+  --tile-2-shadow: none;
+
+  --tile-4-bg: #ede0c8;
+  --tile-4-fg: #645b52;
+  --tile-4-shadow: none;
+
+  --tile-8-bg: #f2b179;
+  --tile-8-fg: #ffffff;
+  --tile-8-shadow: none;
+
+  --tile-16-bg: #f59563;
+  --tile-16-fg: #ffffff;
+  --tile-16-shadow: none;
+
+  --tile-32-bg: #f67c5f;
+  --tile-32-fg: #ffffff;
+  --tile-32-shadow: none;
+
+  --tile-64-bg: #f65e3b;
+  --tile-64-fg: #ffffff;
+  --tile-64-shadow: none;
+
+  --tile-128-bg: #edcf72;
+  --tile-128-fg: #ffffff;
+  --tile-128-shadow:
+    0 8px 16px -10px rgba(0, 0, 0, 0.12),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+
+  --tile-256-bg: #edcc61;
+  --tile-256-fg: #ffffff;
+  --tile-256-shadow:
+    0 10px 18px -11px rgba(0, 0, 0, 0.14),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+
+  --tile-512-bg: #edc850;
+  --tile-512-fg: #ffffff;
+  --tile-512-shadow:
+    0 12px 20px -12px rgba(0, 0, 0, 0.16),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+
+  --tile-1024-bg: #edc53f;
+  --tile-1024-fg: #ffffff;
+  --tile-1024-shadow:
+    0 14px 22px -12px rgba(0, 0, 0, 0.18),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+
+  --tile-2048-bg: #edc22e;
+  --tile-2048-fg: #ffffff;
+  --tile-2048-shadow:
+    0 16px 24px -13px rgba(0, 0, 0, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+
+  --tile-4096-bg: #f0b214;
+  --tile-4096-fg: #ffffff;
+  --tile-4096-shadow:
+    0 18px 26px -13px rgba(0, 0, 0, 0.22),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+
+  --tile-8192-bg: #eb8d10;
+  --tile-8192-fg: #ffffff;
+  --tile-8192-shadow:
+    0 20px 28px -14px rgba(0, 0, 0, 0.24),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+
+  --tile-16384-bg: #8f52f4;
+  --tile-16384-fg: #ffffff;
+  --tile-16384-shadow:
+    0 22px 30px -14px rgba(0, 0, 0, 0.26),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+
+  --tile-32768-bg: #6d2cff;
+  --tile-32768-fg: #ffffff;
+  --tile-32768-shadow:
+    0 24px 34px -15px rgba(0, 0, 0, 0.28),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+
+  --tile-65536-bg: #ff3b57;
+  --tile-65536-fg: #ffffff;
+  --tile-65536-shadow:
+    0 26px 38px -16px rgba(0, 0, 0, 0.32),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  --tile-65536-font: var(--tile-font-sm);
+
+  --tile-super-bg: #ff3b57;
+  --tile-super-fg: #ffffff;
+  --tile-super-shadow:
+    0 26px 38px -16px rgba(0, 0, 0, 0.32),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}

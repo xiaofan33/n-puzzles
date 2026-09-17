@@ -236,6 +236,24 @@ describe('Game2048Model - Game Over State', () => {
     expect(model.state.gg).toBe(true)
   })
 
+  it('should keep accepting moves after a successful spawn (regression: spawn returned undefined)', () => {
+    const grid = [
+      [0, 2, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ]
+
+    const model = createTestModel(grid, { spawnPerMove: 1 })
+    model.move('left')
+    expect(model.state.gg).toBe(false)
+    expect(model.state.steps).toBe(1)
+
+    model.move('right')
+    expect(model.state.gg).toBe(false)
+    expect(model.state.steps).toBe(2)
+  })
+
   it('should not set gameOver when dying tiles leave empty cells', () => {
     // 2 merges free 2 cells and spawnPerMove=0 leaves them empty.
     // Without the fix, the 2 dying (value=0) tiles inflate tiles.length

@@ -14,4 +14,5 @@ export {
   Ruler,
   Share2,
   Timer,
+  Undo2,
 } from 'lucide-react'

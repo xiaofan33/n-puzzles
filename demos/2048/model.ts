@@ -72,16 +72,17 @@ export function createModel(defaultProps: ModelProps = defaultPreset) {
   function move(dir: Direction) {
     if (state.gg) return
 
+    const prev = dumpState()
     const result = processLineMove(lineMoves[dir])
     if (!result.hasMoved) return
 
     state.tiles = state.tiles.filter(t => t.value !== 0)
-    undoStack.push(dumpState())
+    undoStack.push(prev)
     state.score += result.scoreGained
     state.steps += 1
     slots = createSlots()
 
-    const spawned = spawn(props.spawnPerMove, true)
+    const spawned = spawn(props.spawnPerMove)
     if (!spawned || !canMove()) {
       state.gg = true
     }
@@ -148,6 +149,8 @@ export function createModel(defaultProps: ModelProps = defaultPreset) {
       state.tiles.push(t)
       slots[i] = t
     })
+
+    return true
   }
 
   function createSlots() {

@@ -1,0 +1,230 @@
+@import './themes/classic.css';
+
+.board-2048 {
+  /**
+   * Tile size - responsive from 3rem to 6.5rem
+   * Formula: 90vw / (columns * 1.1 + 0.1)
+   * Supports: 4x3, 4x4, 5x5 grids via --col
+   */
+  --tile-size: clamp(3rem, calc(90vw/calc(var(--col, 4) * 1.1 + 0.1)), 6.5rem);
+  --tile-gap: calc(var(--tile-size) * 0.1);
+  --tile-step: calc(var(--tile-size) + var(--tile-gap));
+
+  --tile-font-xl: calc(var(--tile-size) * 0.4);
+  --tile-font-lg: calc(var(--tile-size) * 0.37);
+  --tile-font-md: calc(var(--tile-size) * 0.34);
+  --tile-font-sm: calc(var(--tile-size) * 0.3);
+  --tile-font-xs: calc(var(--tile-size) * 0.26);
+
+  --duration-slide: 120ms;
+  --duration-delay: 150ms;
+}
+
+/* super fallback: themes provide --tile-super-* for values beyond 65536 */
+.tile {
+  font-size: var(--tile-font-xs);
+  background: var(--tile-super-bg);
+  color: var(--tile-super-fg);
+  box-shadow: var(--tile-super-shadow);
+}
+
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+}
+
+/* font size follows digit count */
+.tile:is([data-value='2'], [data-value='4'], [data-value='8']) {
+  font-size: var(--tile-font-xl);
+}
+
+.tile:is([data-value='16'], [data-value='32'], [data-value='64']) {
+  font-size: var(--tile-font-lg);
+}
+
+.tile:is([data-value='128'], [data-value='256'], [data-value='512']) {
+  font-size: var(--tile-font-md);
+}
+
+.tile:is(
+  [data-value='1024'],
+  [data-value='2048'],
+  [data-value='4096'],
+  [data-value='8192']
+) {
+  font-size: var(--tile-font-sm);
+}
+
+/* per-value colors; themes provide the --tile-N-* variables */
+.tile[data-value='2'] {
+  background: var(--tile-2-bg);
+  color: var(--tile-2-fg);
+  box-shadow: var(--tile-2-shadow);
+}
+
+.tile[data-value='4'] {
+  background: var(--tile-4-bg);
+  color: var(--tile-4-fg);
+  box-shadow: var(--tile-4-shadow);
+}
+
+.tile[data-value='8'] {
+  background: var(--tile-8-bg);
+  color: var(--tile-8-fg);
+  box-shadow: var(--tile-8-shadow);
+}
+
+.tile[data-value='16'] {
+  background: var(--tile-16-bg);
+  color: var(--tile-16-fg);
+  box-shadow: var(--tile-16-shadow);
+}
+
+.tile[data-value='32'] {
+  background: var(--tile-32-bg);
+  color: var(--tile-32-fg);
+  box-shadow: var(--tile-32-shadow);
+}
+
+.tile[data-value='64'] {
+  background: var(--tile-64-bg);
+  color: var(--tile-64-fg);
+  box-shadow: var(--tile-64-shadow);
+}
+
+.tile[data-value='128'] {
+  background: var(--tile-128-bg);
+  color: var(--tile-128-fg);
+  box-shadow: var(--tile-128-shadow);
+}
+
+.tile[data-value='256'] {
+  background: var(--tile-256-bg);
+  color: var(--tile-256-fg);
+  box-shadow: var(--tile-256-shadow);
+}
+
+.tile[data-value='512'] {
+  background: var(--tile-512-bg);
+  color: var(--tile-512-fg);
+  box-shadow: var(--tile-512-shadow);
+}
+
+.tile[data-value='1024'] {
+  background: var(--tile-1024-bg);
+  color: var(--tile-1024-fg);
+  box-shadow: var(--tile-1024-shadow);
+}
+
+.tile[data-value='2048'] {
+  background: var(--tile-2048-bg);
+  color: var(--tile-2048-fg);
+  box-shadow: var(--tile-2048-shadow);
+}
+
+.tile[data-value='4096'] {
+  background: var(--tile-4096-bg);
+  color: var(--tile-4096-fg);
+  box-shadow: var(--tile-4096-shadow);
+}
+
+.tile[data-value='8192'] {
+  background: var(--tile-8192-bg);
+  color: var(--tile-8192-fg);
+  box-shadow: var(--tile-8192-shadow);
+}
+
+.tile[data-value='16384'] {
+  background: var(--tile-16384-bg);
+  color: var(--tile-16384-fg);
+  box-shadow: var(--tile-16384-shadow);
+}
+
+.tile[data-value='32768'] {
+  background: var(--tile-32768-bg);
+  color: var(--tile-32768-fg);
+  box-shadow: var(--tile-32768-shadow);
+}
+
+.tile[data-value='65536'] {
+  background: var(--tile-65536-bg);
+  color: var(--tile-65536-fg);
+  box-shadow: var(--tile-65536-shadow);
+  font-size: var(--tile-65536-font);
+}
+
+.tile-spawn {
+  animation: spawn var(--duration-slide) ease-out var(--duration-slide)
+    backwards;
+}
+
+.tile-spawn-now {
+  animation-delay: 0s;
+}
+
+.tile-merge {
+  animation: merge var(--duration-delay) cubic-bezier(0.34, 1.56, 0.64, 1)
+    var(--duration-slide) backwards;
+}
+
+.tile-exit {
+  animation: exit var(--duration-slide) ease-in var(--duration-slide) forwards;
+}
+
+@keyframes spawn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes merge {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@keyframes exit {
+  to {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes score-roll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes gg-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(-32px);
+  }
+}
+
+@keyframes gg-buttons-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+}
