@@ -6,7 +6,7 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 
-const SCAN_DIRS = ['demos', 'src']
+const SCAN_DIRS = ['demos', 'www']
 const LIBRARIES = {
   Lucide: 'lucide-react',
 }

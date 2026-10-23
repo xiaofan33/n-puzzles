@@ -1,37 +1,31 @@
 import { useEffect, useRef, type RefObject } from 'react'
 
-type SwipeDirection = Direction | 'none'
-type PointerType = 'mouse' | 'touch' | 'pen'
+export type SwipeDirection = 'up' | 'down' | 'left' | 'right' | 'none'
+export type PointerType = 'mouse' | 'touch' | 'pen'
 
 export interface UsePointerSwipeConfig {
   /**
    * Minimum distance in pixels before a swipe is recognized.
-   * Default: 30
    */
   threshold?: number
-
   /**
    * Fires on pointer down.  
    */
   onSwipeStart?: (e: PointerEvent) => void
-
   /**
    * Fires continuously while swiping past threshold.
    */
-  onSwipe?: (e: PointerEvent) => void
-
+  onSwipeMove?: (e: PointerEvent) => void
   /**
    * Fires when swipe ends (pointerup / pointercancel).
    * Direction is 'none' when displacement never reached the threshold.
    */
   onSwipeEnd?: (e: PointerEvent, direction: SwipeDirection) => void
-
   /**
    * Pointer types to listen to.
    * Default: ['mouse', 'touch', 'pen']
    */
   pointerTypes?: PointerType[]
-
   /**
    * Disable text selection on the target during swipe.
    * Default: false
@@ -39,13 +33,11 @@ export interface UsePointerSwipeConfig {
   disableTextSelect?: boolean
 }
 
-const DEFAULT_POINTER_TYPES: PointerType[] = ['mouse', 'touch', 'pen']
 const DEFAULT_THRESHOLD = 30
-
-const { abs, max } = Math
+const DEFAULT_POINTER_TYPES: PointerType[] = ['mouse', 'touch', 'pen']
 
 function resolveDirection(dx: number, dy: number): SwipeDirection {
-  if (abs(dx) > abs(dy)) {
+  if (Math.abs(dx) > Math.abs(dy)) {
     return dx > 0 ? 'right' : 'left'
   }
   return dy > 0 ? 'down' : 'up'
@@ -62,8 +54,8 @@ function resolveDirection(dx: number, dy: number): SwipeDirection {
  */
 export function usePointerSwipe(
   target: RefObject<HTMLElement | null>,
-  config: UsePointerSwipeConfig,
-): void {
+  config: UsePointerSwipeConfig = {},
+) {
   const configRef = useRef(config)
   useEffect(() => {
     configRef.current = config
@@ -90,8 +82,7 @@ export function usePointerSwipe(
 
     let startX = 0
     let startY = 0
-    let endX = 0
-    let endY = 0
+    let activePointerId: number | null = null
     let isPointerDown = false
     let isSwiping = false
 
@@ -105,46 +96,48 @@ export function usePointerSwipe(
     }
 
     const handleDown = (e: PointerEvent) => {
-      if (!eventIsAllowed(e)) return
+      if (!eventIsAllowed(e) || activePointerId !== null) return
 
       isPointerDown = true
+      activePointerId = e.pointerId
       startX = e.clientX
       startY = e.clientY
-      endX = startX
-      endY = startY
       el.setPointerCapture(e.pointerId)
       configRef.current.onSwipeStart?.(e)
     }
 
     const handleMove = (e: PointerEvent) => {
-      if (!eventIsAllowed(e) || !isPointerDown) return
+      if (
+        !eventIsAllowed(e) ||
+        !isPointerDown ||
+        e.pointerId !== activePointerId
+      )
+        return
 
-      endX = e.clientX
-      endY = e.clientY
-      const distX = abs(endX - startX)
-      const distY = abs(endY - startY)
+      const distX = Math.abs(e.clientX - startX)
+      const distY = Math.abs(e.clientY - startY)
       const { threshold = DEFAULT_THRESHOLD } = configRef.current
-      if (!isSwiping && max(distX, distY) >= threshold) {
+      const minDist = Math.max(0, Math.trunc(threshold))
+      if (!isSwiping && Math.max(distX, distY) >= minDist) {
         isSwiping = true
       }
       if (isSwiping) {
-        configRef.current.onSwipe?.(e)
+        configRef.current.onSwipeMove?.(e)
       }
     }
 
     const handleEnd = (e: PointerEvent) => {
-      if (!eventIsAllowed(e)) return
+      if (e.pointerId !== activePointerId) return
 
-      if (isPointerDown) {
-        endX = e.clientX
-        endY = e.clientY
-        const dx = endX - startX
-        const dy = endY - startY
-        const direction = isSwiping ? resolveDirection(dx, dy) : 'none'
+      if (isPointerDown && eventIsAllowed(e)) {
+        const direction = isSwiping
+          ? resolveDirection(e.clientX - startX, e.clientY - startY)
+          : 'none'
         configRef.current.onSwipeEnd?.(e, direction)
       }
       isPointerDown = false
       isSwiping = false
+      activePointerId = null
     }
 
     el.addEventListener('pointerdown', handleDown, { passive: true })

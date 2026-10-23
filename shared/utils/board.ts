@@ -1,40 +1,39 @@
-export const AXIAL_DIRS: readonly Position[] = [
-  { x: 0, y: -1 },
-  { x: 0, y: 1 },
-  { x: -1, y: 0 },
-  { x: 1, y: 0 },
-]
+import type { GridSize, Position } from './types'
 
-export const NEIGHBOR_DIRS: readonly Position[] = [
-  ...AXIAL_DIRS,
-  { x: -1, y: -1 },
-  { x: -1, y: 1 },
-  { x: 1, y: -1 },
-  { x: 1, y: 1 },
-]
+export const AXIAL_DIRS = Object.freeze(
+  [
+    { x: 0, y: -1 },
+    { x: 0, y: 1 },
+    { x: -1, y: 0 },
+    { x: 1, y: 0 },
+  ].map(d => Object.freeze(d)),
+)
 
-export const DIR_OFFSETS: Readonly<Record<Direction, Position>> = {
-  up: { x: 0, y: -1 },
-  down: { x: 0, y: 1 },
-  left: { x: -1, y: 0 },
-  right: { x: 1, y: 0 },
-}
+export const NEIGHBOR_DIRS = Object.freeze(
+  [
+    ...AXIAL_DIRS,
+    { x: -1, y: -1 },
+    { x: -1, y: 1 },
+    { x: 1, y: -1 },
+    { x: 1, y: 1 },
+  ].map(d => Object.freeze(d)),
+)
 
-export type GridBounds = GridSize & Position
-
-export function createBoardGrid(bounds?: Partial<GridBounds>) {
+export function createBoard(bounds: Partial<GridSize & Position> = {}) {
   let w = 1,
     h = 1,
     x = 0,
     y = 0
 
-  function setBounds(patch: Partial<GridBounds>) {
-    if (patch.w !== undefined) w = patch.w
-    if (patch.h !== undefined) h = patch.h
-    if (patch.x !== undefined) x = patch.x
-    if (patch.y !== undefined) y = patch.y
+  function resetBounds(patch: Partial<GridSize & Position> = {}) {
+    if (patch.w !== undefined) w = Math.max(1, Math.trunc(patch.w))
+    if (patch.h !== undefined) h = Math.max(1, Math.trunc(patch.h))
+    if (patch.x !== undefined) x = Math.trunc(patch.x)
+    if (patch.y !== undefined) y = Math.trunc(patch.y)
   }
 
+  // Coordinate & index helpers below assume in-range integer inputs.
+  // Out-of-range or fractional values are not validated — guard with isValidPos.
   function posToIndex(pos: Position) {
     return (pos.y - y) * w + (pos.x - x)
   }
@@ -76,7 +75,10 @@ export function createBoardGrid(bounds?: Partial<GridBounds>) {
       .filter(p => isValidPos(p))
   }
 
-  function getLineIndices(index: number, orientation: Orientation): number[] {
+  function getLineIndices(
+    index: number,
+    orientation: 'horizontal' | 'vertical',
+  ): number[] {
     if (orientation === 'horizontal') {
       const start = Math.floor(index / w) * w
       return Array.from({ length: w }, (_, i) => start + i)
@@ -85,7 +87,7 @@ export function createBoardGrid(bounds?: Partial<GridBounds>) {
     return Array.from({ length: h }, (_, i) => col + i * w)
   }
 
-  setBounds(bounds || {})
+  resetBounds(bounds)
 
   return {
     get w() {
@@ -103,7 +105,7 @@ export function createBoardGrid(bounds?: Partial<GridBounds>) {
     get total() {
       return w * h
     },
-    setBounds,
+    resetBounds,
     posToIndex,
     indexToPos,
     isValidPos,

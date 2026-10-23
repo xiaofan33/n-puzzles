@@ -25,5 +25,5 @@
       "@demos/*": ["./demos/*"]
     }
   },
-  "include": ["src", "shared", "demos"]
+  "include": ["www", "shared", "demos"]
 }

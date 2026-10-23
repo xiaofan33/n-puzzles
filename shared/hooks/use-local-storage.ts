@@ -9,12 +9,21 @@ function resolve<T>(value: T | (() => T)): T {
   return typeof value === 'function' ? (value as () => T)() : value
 }
 
+function emit(key: string) {
+  listeners.get(key)?.forEach(fn => fn())
+}
+
+function invalidate(key: string) {
+  cache.delete(key)
+  emit(key)
+}
+
 function read<T>(
   key: string,
   defaultValue: T | (() => T),
   parse?: (stored: unknown, defaultResolved: T) => T,
-): T {
-  const raw = localStorage.getItem(key)
+) {
+  const raw = window.localStorage.getItem(key)
   if (raw === null) {
     return resolve(defaultValue)
   }
@@ -26,11 +35,20 @@ function read<T>(
   }
 }
 
-function emit(key: string) {
-  listeners.get(key)?.forEach(fn => fn())
+function readCached<T>(
+  key: string,
+  defaultValue: T | (() => T),
+  parse?: (stored: unknown, defaultResolved: T) => T,
+): T {
+  if (cache.has(key)) {
+    return cache.get(key) as T
+  }
+  const value = read(key, defaultValue, parse)
+  cache.set(key, value)
+  return value
 }
 
-function subscribeKey(key: string, fn: Listener): () => void {
+function addListener(key: string, fn: Listener) {
   let set = listeners.get(key)
   if (!set) {
     set = new Set()
@@ -52,9 +70,11 @@ export function useLocalStorage<T>(
   parse?: (stored: unknown, defaultResolved: T) => T,
 ) {
   const parseRef = useRef(parse)
+  const defaultRef = useRef(defaultValue)
   useEffect(() => {
     parseRef.current = parse
-  }, [parse])
+    defaultRef.current = defaultValue
+  }, [parse, defaultValue])
   const stableParse = useCallback(
     (stored: unknown, defaultResolved: T): T =>
       parseRef.current
@@ -64,18 +84,14 @@ export function useLocalStorage<T>(
   )
 
   const subscribe = useCallback(
-    (onStoreChange: () => void) => subscribeKey(key, onStoreChange),
+    (onStoreChange: Listener) => addListener(key, onStoreChange),
     [key],
   )
 
-  const getSnapshot = useCallback(() => {
-    if (cache.has(key)) {
-      return cache.get(key) as T
-    }
-    const value = read(key, defaultValue, stableParse)
-    cache.set(key, value)
-    return value
-  }, [key, defaultValue, stableParse])
+  const getSnapshot = useCallback(
+    () => readCached(key, defaultRef.current, stableParse),
+    [key, stableParse],
+  )
 
   const value = useSyncExternalStore(subscribe, getSnapshot)
 
@@ -84,8 +100,7 @@ export function useLocalStorage<T>(
     const onStorage = (e: StorageEvent) => {
       // e.key === null means localStorage.clear()
       if (e.key === key || e.key === null) {
-        cache.delete(key)
-        emit(key)
+        invalidate(key)
       }
     }
     window.addEventListener('storage', onStorage)
@@ -94,9 +109,7 @@ export function useLocalStorage<T>(
 
   const setValue = useCallback(
     (next: T | ((prev: T) => T)) => {
-      const prev = cache.has(key)
-        ? (cache.get(key) as T)
-        : read(key, defaultValue, stableParse)
+      const prev = readCached(key, defaultRef.current, stableParse)
       const resolved =
         typeof next === 'function' ? (next as (p: T) => T)(prev) : next
       try {
@@ -107,13 +120,12 @@ export function useLocalStorage<T>(
       cache.set(key, resolved)
       emit(key)
     },
-    [key, defaultValue, stableParse],
+    [key, stableParse],
   )
 
   const removeValue = useCallback(() => {
     localStorage.removeItem(key)
-    cache.delete(key)
-    emit(key)
+    invalidate(key)
   }, [key])
 
   return [value, setValue, removeValue] as const

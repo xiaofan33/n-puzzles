@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 
-export type Rerender = <T extends (...args: any[]) => any>(
-  fn: T,
-) => (...args: Parameters<T>) => ReturnType<T>
+export type Rerender = <A extends unknown[], R>(
+  fn: (...args: A) => R,
+) => (...args: A) => R
 
 /**
  * Returns a `rerender` helper: `rerender(fn)` produces a new function that
@@ -13,11 +13,11 @@ export function useForceRerender(): Rerender {
   const [, forceRerender] = useState({})
   return useMemo(
     () =>
-      function rerender<T extends (...args: any[]) => any>(fn: T) {
-        return (...args: Parameters<T>): ReturnType<T> => {
-          const r = fn(...args)
+      function rerender<A extends unknown[], R>(fn: (...args: A) => R) {
+        return (...args: A): R => {
+          const result = fn(...args)
           forceRerender({})
-          return r
+          return result
         }
       },
     [],

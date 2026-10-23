@@ -1,35 +1,38 @@
 import {
   arrayShuffle,
-  createBoardGrid,
+  createBoard,
   createUndoStack,
   randomWeighted,
-} from '@shared/lib'
-import { defaultPreset, type Preset } from './config'
+  type Direction,
+} from '@shared/utils'
+import { DEFAULT_PRESET, type Preset } from './preset'
 
-type LineConfig = {
-  key: keyof Position
-  isReverse: boolean
-  getLength: () => number
-  getIndices: (i: number) => number[]
-}
-
-export interface TileState extends Position {
+export interface TileState {
   id?: number
   value: number
-  // whether this tile was generated at the start of a new game
-  isInitial?: boolean
+  x: number
+  y: number
+  spawnedAtInit?: boolean
 }
 
-export interface ModelState {
+export interface GameState {
   score: number
   steps: number
   tiles: TileState[]
-  gg?: boolean
+  isEnded?: boolean
 }
 
-export interface ModelProps extends Preset {
+export interface GameProps extends Preset {
   undoCapacity?: number
-  initialState?: Partial<ModelState>
+  initialState?: Partial<GameState>
+}
+
+type TileSlots = Array<TileState | null>
+type LineProps = {
+  key: 'x' | 'y'
+  isReverse: boolean
+  lineSize: () => number
+  lineIndices: (i: number) => number[]
 }
 
 const nextId = (() => {
@@ -37,26 +40,28 @@ const nextId = (() => {
   return () => id++
 })()
 
-export function createModel(defaultProps: ModelProps = defaultPreset) {
-  let props: ModelProps
-  let state: ModelState
-  let slots: Array<TileState | null>
-  const boardGrid = createBoardGrid()
-  const undoStack = createUndoStack<ModelState>()
+export function createModel(defaultProps: GameProps = DEFAULT_PRESET) {
+  let props: GameProps = defaultProps
+  let state: GameState
+  let slots: TileSlots
+  let boardGrid = createBoard()
+  let undoStack = createUndoStack<GameState>()
   // prettier-ignore
-  const lineMoves: Record<Direction, LineConfig> = {
-    up   : { key: "y", isReverse: true,  getLength: () => boardGrid.w, getIndices: (i: number) => boardGrid.getLineIndices(i, 'vertical') },
-    down : { key: "y", isReverse: false, getLength: () => boardGrid.w, getIndices: (i: number) => boardGrid.getLineIndices(i, 'vertical') },
-    left : { key: "x", isReverse: true,  getLength: () => boardGrid.h, getIndices: (i: number) => boardGrid.getLineIndices(i * boardGrid.w, 'horizontal') },
-    right: { key: "x", isReverse: false, getLength: () => boardGrid.h, getIndices: (i: number) => boardGrid.getLineIndices(i * boardGrid.w, 'horizontal') },
+  const lineMoves: Record<Direction, LineProps> = {
+    up   : { key: "y", isReverse: true,  lineSize: () => boardGrid.w, lineIndices: (i: number) => boardGrid.getLineIndices(i, 'vertical') },
+    down : { key: "y", isReverse: false, lineSize: () => boardGrid.w, lineIndices: (i: number) => boardGrid.getLineIndices(i, 'vertical') },
+    left : { key: "x", isReverse: true,  lineSize: () => boardGrid.h, lineIndices: (i: number) => boardGrid.getLineIndices(i * boardGrid.w, 'horizontal') },
+    right: { key: "x", isReverse: false, lineSize: () => boardGrid.h, lineIndices: (i: number) => boardGrid.getLineIndices(i * boardGrid.w, 'horizontal') },
   }
 
-  function restore(patch: Partial<ModelProps> = {}) {
-    const { undoCapacity = 1, initialState, ...preset } = patch
-
+  function init({
+    undoCapacity = 1,
+    initialState,
+    ...preset
+  }: Partial<GameProps>) {
     props = { ...props, ...preset }
-    state = { score: 0, steps: 0, tiles: [], gg: false, ...initialState }
-    boardGrid.setBounds(props.boardSize)
+    state = { score: 0, steps: 0, tiles: [], ...initialState }
+    boardGrid.resetBounds(props.boardSize)
     undoStack.reset(undoCapacity)
     slots = createSlots()
 
@@ -66,25 +71,29 @@ export function createModel(defaultProps: ModelProps = defaultPreset) {
       state.tiles.forEach(t => (t.id = nextId()))
     }
 
-    state.gg = !canMove()
+    state.isEnded = !canMove()
   }
 
-  function move(dir: Direction) {
-    if (state.gg) return
+  function move(direction: Direction) {
+    if (state.isEnded) return
 
-    const prev = dumpState()
-    const result = processLineMove(lineMoves[dir])
-    if (!result.hasMoved) return
+    const prev = snapshotState()
+    const { hasMoved, scoreGained } = processLineMove(lineMoves[direction])
+
+    if (!hasMoved) return
 
     state.tiles = state.tiles.filter(t => t.value !== 0)
     undoStack.push(prev)
-    state.score += result.scoreGained
+    state.score += scoreGained
     state.steps += 1
     slots = createSlots()
 
+    // spawn returns false when the remaining empty slots cannot fit the configured
+    // count (board is full). This is an intended terminal condition, treated the same as
+    // "no move available"; the !spawned short-circuit means canMove is not evaluated here.
     const spawned = spawn(props.spawnPerMove)
     if (!spawned || !canMove()) {
-      state.gg = true
+      state.isEnded = true
     }
   }
 
@@ -116,35 +125,38 @@ export function createModel(defaultProps: ModelProps = defaultPreset) {
     return !undoStack.isEmpty()
   }
 
-  function dump(): ModelProps {
+  function snapshot(): GameProps {
     return {
       ...props,
-      initialState: dumpState(true),
+      initialState: snapshotState(true),
     }
   }
 
-  function dumpState(omitId = false): ModelState {
+  function snapshotState(omitId = false): GameState {
     const tiles = omitId
-      ? state.tiles.map(({ isInitial: _, id: __, ...t }) => t)
-      : state.tiles.map(({ isInitial: _, ...t }) => t)
+      ? state.tiles.map(({ spawnedAtInit: _, id: __, ...t }) => t)
+      : state.tiles.map(({ spawnedAtInit: _, ...t }) => t)
 
     return { ...state, tiles }
   }
 
-  function spawn(count: number, initial = false) {
-    if (count <= 0) return true
+  function spawn(count: number, spawnedAtInit = false): boolean {
+    count = Math.max(0, Math.trunc(count))
 
-    const emptySlots = slots.reduce<number[]>((acc, t, i) => {
+    const empty = slots.reduce<number[]>((acc, t, i) => {
       if (t === null) acc.push(i)
       return acc
     }, [])
-    if (emptySlots.length < count) return false
 
-    arrayShuffle(emptySlots, count).forEach(i => {
+    // Not enough empty slots to fit every new tile: bail out without spawning a
+    // partial set; the caller treats this as game over (see move).
+    if (empty.length < count) return false
+
+    arrayShuffle(empty, count).forEach(i => {
       const pos = boardGrid.indexToPos(i)
       const t = createTile(pos)
-      if (initial) {
-        t.isInitial = true
+      if (spawnedAtInit) {
+        t.spawnedAtInit = true
       }
       state.tiles.push(t)
       slots[i] = t
@@ -153,33 +165,35 @@ export function createModel(defaultProps: ModelProps = defaultPreset) {
     return true
   }
 
-  function createSlots() {
-    const next = Array<TileState | null>(boardGrid.total).fill(null)
+  function createSlots(): TileSlots {
+    const slots: TileSlots = Array(boardGrid.total).fill(null)
     state.tiles.forEach(t => {
-      if (t.value !== 0) {
-        next[boardGrid.posToIndex(t)] = t
-      }
+      if (t.value !== 0) slots[boardGrid.posToIndex(t)] = t
     })
-    return next
+    return slots
   }
 
-  function createTile(pos: Position): TileState {
-    return {
-      id: nextId(),
-      value: randomWeighted(props.valueWeights).value,
-      ...pos,
-    }
+  function createTile(pos: { x: number; y: number }): TileState {
+    const { value } = randomWeighted(props.valueWeights)
+    return { id: nextId(), value, ...pos }
   }
 
-  function processLineMove(config: LineConfig) {
-    const { key, isReverse, getLength, getIndices } = config
+  function processLineMove({
+    key,
+    isReverse,
+    lineSize,
+    lineIndices,
+  }: LineProps) {
     let hasMoved = false
     let scoreGained = 0
 
-    for (let i = 0; i < getLength(); i++) {
-      const indices = getIndices(i)
-      const tiles = indices.map(j => slots[j]).filter(t => t !== null)
+    for (let i = 0; i < lineSize(); i++) {
+      const indices = lineIndices(i)
+      const tiles = indices
+        .map(j => slots[j])
+        .filter(t => t !== null) as TileState[]
       const count = tiles.length
+
       if (count === 0) continue
 
       let slot = 0
@@ -219,7 +233,7 @@ export function createModel(defaultProps: ModelProps = defaultPreset) {
     absorbed.value = 0
   }
 
-  restore(defaultProps)
+  init(defaultProps)
 
   return {
     get props() {
@@ -228,10 +242,10 @@ export function createModel(defaultProps: ModelProps = defaultPreset) {
     get state() {
       return state
     },
-    restore,
+    init,
     move,
     undo,
-    dump,
+    snapshot,
     canMove,
     canUndo,
   }

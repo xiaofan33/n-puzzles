@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { create2DArray } from '@shared/lib'
-import { createModel, type ModelProps, type TileState } from './model'
+import { create2DArray } from '@shared/utils'
+import { createModel, type GameProps, type TileState } from './model'
 
 function tilesToGrid(tiles: TileState[], rows: number, cols = rows) {
   const grid = create2DArray(rows, cols, 0)
@@ -23,9 +23,9 @@ function gridToTiles(grid: number[][]) {
   return tiles
 }
 
-function createTestModel(grid: number[][], patch?: Partial<ModelProps>) {
+function createTestModel(grid: number[][], patch?: Partial<GameProps>) {
   const m = createModel()
-  m.restore({
+  m.init({
     spawnPerMove: 0,
     initialState: {
       tiles: gridToTiles(grid),
@@ -220,7 +220,7 @@ describe('Game2048Model - Game Over State', () => {
 
     const model = createTestModel(grid)
     model.move('right')
-    expect(model.state.gg).toBe(false)
+    expect(model.state.isEnded).not.toBe(true)
   })
 
   it('should set gameOver when no moves are possible', () => {
@@ -233,7 +233,7 @@ describe('Game2048Model - Game Over State', () => {
 
     const model = createTestModel(grid, { spawnPerMove: 1 })
     model.move('up')
-    expect(model.state.gg).toBe(true)
+    expect(model.state.isEnded).toBe(true)
   })
 
   it('should keep accepting moves after a successful spawn (regression: spawn returned undefined)', () => {
@@ -246,11 +246,11 @@ describe('Game2048Model - Game Over State', () => {
 
     const model = createTestModel(grid, { spawnPerMove: 1 })
     model.move('left')
-    expect(model.state.gg).toBe(false)
+    expect(model.state.isEnded).not.toBe(true)
     expect(model.state.steps).toBe(1)
 
     model.move('right')
-    expect(model.state.gg).toBe(false)
+    expect(model.state.isEnded).not.toBe(true)
     expect(model.state.steps).toBe(2)
   })
 
@@ -267,6 +267,6 @@ describe('Game2048Model - Game Over State', () => {
 
     const model = createTestModel(grid, { spawnPerMove: 0 })
     model.move('left')
-    expect(model.state.gg).toBe(false)
+    expect(model.state.isEnded).not.toBe(true)
   })
 })

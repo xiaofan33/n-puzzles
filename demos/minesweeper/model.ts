@@ -1,16 +1,15 @@
 import {
-  NEIGHBOR_DIRS,
   arrayShuffle,
   create2DArray,
-  createBoardGrid,
+  createBoard,
   createTimer,
-} from '@shared/lib'
+} from '@shared/utils'
+import { FIRST_CLICK_SAFE_COUNT, type BoardConfig } from './preset'
 
 export type GamePhase = 'ready' | 'playing' | 'won' | 'lost'
 export type Operation = 'reveal' | 'toggle-flag' | 'chord-reveal'
-/**
- * 'exploded' | 'misflagged' are computed post-game views, added for convenient UI rendering
- */
+
+// 'exploded' | 'misflagged' are computed post-game views, added for convenient UI rendering
 export type CellView =
   'covered' | 'revealed' | 'flagged' | 'exploded' | 'misflagged'
 
@@ -21,13 +20,7 @@ export interface Cell {
   adjacentMineCount?: number
 }
 
-export interface BoardConfig {
-  w: number
-  h: number
-  m: number /** number of mines */
-}
-
-export interface ModelProps extends BoardConfig {
+export interface GameProps extends BoardConfig {
   elapsedMs?: number /** milliseconds */
   cellMasks?: readonly number[]
 }
@@ -38,24 +31,19 @@ const CELL_FLAGS = {
   mine: 1 << 2, // 0b100
 } as const
 
-/**
- * The first click reveals its own cell plus up to 8 neighbors, all kept mine-free
- * by `placeMines` — so a board must keep at least this many cells safe.
- */
-export const FIRST_CLICK_SAFE_COUNT = NEIGHBOR_DIRS.length + 1
-
-export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
+export function createModel(props: GameProps) {
   let phase: GamePhase = 'ready'
   let cells: Cell[] = []
   let flagIndices: Set<number> = new Set()
   let mineIndices: number[] = []
-  let totalMineCount = 0
-  let totalSafeCount = 0
-  let adjacentCellsCache = new WeakMap<Cell, Cell[]>()
-  const board = createBoardGrid(props)
+  let mineCount = 0
+  let remainingSafeCount = 0
+  let adjacentCellsMap = new WeakMap<Cell, Cell[]>()
+
+  const board = createBoard(props)
   const timer = createTimer(props.elapsedMs)
 
-  function restore({ elapsedMs, cellMasks, w, h, m }: ModelProps) {
+  function restore({ elapsedMs, cellMasks, w, h, m }: GameProps) {
     const total = w * h
     if (m <= 0 || total - m < FIRST_CLICK_SAFE_COUNT) {
       throw new RangeError(
@@ -64,16 +52,16 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
     }
 
     flagIndices.clear()
-    mineIndices = []
-    totalMineCount = m
-    totalSafeCount = total - m
-    timer.reset(elapsedMs || 0)
+    mineIndices.length = 0
+    mineCount = m
+    remainingSafeCount = total - m
     phase = 'ready'
+    timer.reset(elapsedMs)
 
     const needsInit = board.w !== w || board.h !== h || cells.length === 0
     if (needsInit) {
-      adjacentCellsCache = new WeakMap<Cell, Cell[]>()
-      board.setBounds({ w, h })
+      adjacentCellsMap = new WeakMap<Cell, Cell[]>()
+      board.resetBounds({ w, h })
       cells = Array.from({ length: total }, (_, i) => ({
         index: i,
         mine: false,
@@ -83,7 +71,7 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
       cells.forEach(c => {
         c.mine = false
         c.view = 'covered'
-        c.adjacentMineCount = undefined
+        c.adjacentMineCount = void 0
       })
     }
 
@@ -99,10 +87,10 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
    */
   function restart() {
     cells.forEach(c => (c.view = 'covered'))
-    totalSafeCount = cells.length - totalMineCount
+    remainingSafeCount = cells.length - mineCount
     flagIndices.clear()
-    timer.reset()
     phase = 'ready'
+    timer.reset()
   }
 
   function operate(cell: Cell, op: Operation) {
@@ -131,21 +119,20 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
 
   function revealAll() {
     if (phase === 'won') {
-      for (const c of cells) {
+      cells.forEach(c => {
         if (c.view === 'covered') {
           c.view = 'flagged'
           flagIndices.add(c.index)
         }
-      }
-    } else if (phase === 'lost') {
-      for (const c of cells) {
-        if (c.view === 'flagged' && !c.mine) {
-          c.view = 'misflagged'
-        }
-        if (c.view === 'covered' && c.mine) {
-          c.view = 'revealed'
-        }
-      }
+      })
+      return
+    }
+
+    if (phase === 'lost') {
+      cells.forEach(c => {
+        if (c.view === 'flagged' && !c.mine) c.view = 'misflagged'
+        if (c.view === 'covered' && c.mine) c.view = 'revealed'
+      })
     }
   }
 
@@ -154,12 +141,14 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
   }
 
   function getAdjacentCells(cell: Cell) {
-    const cache = adjacentCellsCache.get(cell)
-    if (cache) return cache
+    const cached = adjacentCellsMap.get(cell)
+    if (cached) return cached
 
-    const result = board.getNeighbors(cell.index, true).map(i => cells[i])
-    adjacentCellsCache.set(cell, result)
-    return result
+    const adjacentCells = board
+      .getNeighbors(cell.index, true)
+      .map(i => cells[i])
+    adjacentCellsMap.set(cell, adjacentCells)
+    return adjacentCells
   }
 
   function getAdjacentMineCount(cell: Cell) {
@@ -167,8 +156,11 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
     return cell.adjacentMineCount
   }
 
-  function getElapsedMs() {
-    return timer.value
+  function ensureAdjacentMineCount(cell: Cell) {
+    if (cell.adjacentMineCount !== undefined) return
+
+    const mineCells = getAdjacentCells(cell).filter(c => c.mine)
+    cell.adjacentMineCount = mineCells.length
   }
 
   function getCellMasks() {
@@ -194,7 +186,7 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
       if (mask & CELL_FLAGS.reveal) {
         cell.view = 'revealed'
         revealed.push(cell)
-        totalSafeCount--
+        remainingSafeCount--
       }
       if (mask & CELL_FLAGS.flag) {
         cell.view = 'flagged'
@@ -208,17 +200,10 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
     revealed.forEach(ensureAdjacentMineCount)
   }
 
-  function ensureAdjacentMineCount(cell: Cell) {
-    if (cell.adjacentMineCount !== undefined) return
-
-    const mineCells = getAdjacentCells(cell).filter(c => c.mine)
-    cell.adjacentMineCount = mineCells.length
-  }
-
   function placeMines(safeCell: Cell) {
     const excluded = new Set([safeCell, ...getAdjacentCells(safeCell)])
     const candidates = cells.filter(c => !excluded.has(c))
-    arrayShuffle(candidates, totalMineCount).forEach(c => {
+    arrayShuffle(candidates, mineCount).forEach(c => {
       c.mine = true
       mineIndices.push(c.index)
     })
@@ -240,8 +225,8 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
       floodReveal(cell)
     }
 
-    totalSafeCount--
-    if (totalSafeCount === 0) {
+    remainingSafeCount--
+    if (remainingSafeCount === 0) {
       phase = 'won'
       timer.stop()
       revealAll()
@@ -274,7 +259,7 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
       getAdjacentCells(stack.pop()!).forEach(c => {
         if (c.view === 'covered' && !c.mine) {
           c.view = 'revealed'
-          totalSafeCount--
+          remainingSafeCount--
           if (getAdjacentMineCount(c) === 0) {
             stack.push(c)
           }
@@ -283,22 +268,20 @@ export function createModel(props: ModelProps = { w: 9, h: 9, m: 10 }) {
     }
   }
 
-  restore(props)
-
   return {
     restore,
     restart,
     operate,
     revealAll,
     toCells2D,
-    getElapsedMs,
     getCellMasks,
     getAdjacentCells,
+
     get boardConfig() {
-      return { w: board.w, h: board.h, m: totalMineCount }
+      return { w: board.w, h: board.h, m: mineCount }
     },
-    get phase() {
-      return phase
+    get elapsedMs() {
+      return timer.value
     },
     get flagCount() {
       return flagIndices.size
