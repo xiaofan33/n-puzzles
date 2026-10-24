@@ -1,0 +1,157 @@
+@import './animation.css';
+@import './theme.css';
+
+.board {
+  /**
+   * Tile size - responsive from 3rem to 6.5rem
+   * Formula: 86vw / (columns * 1.1 + 0.1)
+   * Supports: 4x3, 4x4, 5x5 grids via --col
+   */
+  --tile-size: clamp(3rem, calc(86vw/calc(var(--col, 4) * 1.1 + 0.1)), 6.5rem);
+  --tile-gap: calc(var(--tile-size) * 0.1);
+  --tile-step: calc(var(--tile-size) + var(--tile-gap));
+
+  --tile-font-xl: calc(var(--tile-size) * 0.4);
+  --tile-font-lg: calc(var(--tile-size) * 0.37);
+  --tile-font-md: calc(var(--tile-size) * 0.34);
+  --tile-font-sm: calc(var(--tile-size) * 0.3);
+  --tile-font-xs: calc(var(--tile-size) * 0.26);
+
+  --duration-slide: 120ms;
+  --duration-merge: 150ms;
+}
+
+/* super fallback: themes provide --tile-super-* for 65536 and beyond */
+.tile {
+  position: absolute;
+  inset: 0;
+  font-weight: bold;
+  font-size: var(--tile-font-xs);
+  background: var(--tile-bg, var(--tile-super-bg));
+  color: var(--tile-fg, var(--tile-super-fg));
+  box-shadow: var(--tile-shadow, var(--tile-super-shadow));
+}
+
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+}
+
+/* font size follows digit count */
+.tile:is([data-value='2'], [data-value='4'], [data-value='8']) {
+  font-size: var(--tile-font-xl);
+}
+
+.tile:is([data-value='16'], [data-value='32'], [data-value='64']) {
+  font-size: var(--tile-font-lg);
+}
+
+.tile:is([data-value='128'], [data-value='256'], [data-value='512']) {
+  font-size: var(--tile-font-md);
+}
+
+.tile:is(
+  [data-value='1024'],
+  [data-value='2048'],
+  [data-value='4096'],
+  [data-value='8192']
+) {
+  font-size: var(--tile-font-sm);
+}
+
+/* per-value token mapping; themes provide the --tile-N-* variables */
+.tile[data-value='2'] {
+  --tile-bg: var(--tile-2-bg);
+  --tile-fg: var(--tile-2-fg);
+  --tile-shadow: var(--tile-2-shadow);
+}
+
+.tile[data-value='4'] {
+  --tile-bg: var(--tile-4-bg);
+  --tile-fg: var(--tile-4-fg);
+  --tile-shadow: var(--tile-4-shadow);
+}
+
+.tile[data-value='8'] {
+  --tile-bg: var(--tile-8-bg);
+  --tile-fg: var(--tile-8-fg);
+  --tile-shadow: var(--tile-8-shadow);
+}
+
+.tile[data-value='16'] {
+  --tile-bg: var(--tile-16-bg);
+  --tile-fg: var(--tile-16-fg);
+  --tile-shadow: var(--tile-16-shadow);
+}
+
+.tile[data-value='32'] {
+  --tile-bg: var(--tile-32-bg);
+  --tile-fg: var(--tile-32-fg);
+  --tile-shadow: var(--tile-32-shadow);
+}
+
+.tile[data-value='64'] {
+  --tile-bg: var(--tile-64-bg);
+  --tile-fg: var(--tile-64-fg);
+  --tile-shadow: var(--tile-64-shadow);
+}
+
+.tile[data-value='128'] {
+  --tile-bg: var(--tile-128-bg);
+  --tile-fg: var(--tile-128-fg);
+  --tile-shadow: var(--tile-128-shadow);
+}
+
+.tile[data-value='256'] {
+  --tile-bg: var(--tile-256-bg);
+  --tile-fg: var(--tile-256-fg);
+  --tile-shadow: var(--tile-256-shadow);
+}
+
+.tile[data-value='512'] {
+  --tile-bg: var(--tile-512-bg);
+  --tile-fg: var(--tile-512-fg);
+  --tile-shadow: var(--tile-512-shadow);
+}
+
+.tile[data-value='1024'] {
+  --tile-bg: var(--tile-1024-bg);
+  --tile-fg: var(--tile-1024-fg);
+  --tile-shadow: var(--tile-1024-shadow);
+}
+
+.tile[data-value='2048'] {
+  --tile-bg: var(--tile-2048-bg);
+  --tile-fg: var(--tile-2048-fg);
+  --tile-shadow: var(--tile-2048-shadow);
+}
+
+.tile[data-value='4096'] {
+  --tile-bg: var(--tile-4096-bg);
+  --tile-fg: var(--tile-4096-fg);
+  --tile-shadow: var(--tile-4096-shadow);
+}
+
+.tile[data-value='8192'] {
+  --tile-bg: var(--tile-8192-bg);
+  --tile-fg: var(--tile-8192-fg);
+  --tile-shadow: var(--tile-8192-shadow);
+}
+
+.tile[data-value='16384'] {
+  --tile-bg: var(--tile-16384-bg);
+  --tile-fg: var(--tile-16384-fg);
+  --tile-shadow: var(--tile-16384-shadow);
+}
+
+.tile[data-value='32768'] {
+  --tile-bg: var(--tile-32768-bg);
+  --tile-fg: var(--tile-32768-fg);
+  --tile-shadow: var(--tile-32768-shadow);
+}
