@@ -55,7 +55,7 @@ export default function () {
   const { score, tiles, isEnded } = model.state
 
   const [presetIndex, setPresetIndex] = useLocalStorage(
-    'game-2048-preset',
+    'game-2048:preset',
     0,
     (stored, fallback) =>
       typeof stored === 'number' &&
@@ -68,7 +68,7 @@ export default function () {
   const preset = PRESET_LIST[presetIndex]
 
   const [bestScore, setBestScore] = useLocalStorage(
-    `game-2048-best-${presetLabels[presetIndex]}`,
+    `game-2048:${presetLabels[presetIndex]}-best`,
     0,
     (stored, fallback) =>
       typeof stored === 'number' && Number.isInteger(stored) && stored >= 0

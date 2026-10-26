@@ -6,7 +6,8 @@
     "dev": "vite --host",
     "build": "vite build",
     "test": "vitest",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "gen-icon": "node scripts/gen-icon-index.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
