@@ -13,7 +13,7 @@ type CopyState = 'idle' | 'copied' | 'failed'
 const ITEMS = [
   {
     icon: Lucide.Grid2X2,
-    text: '宽高',
+    text: '宽ｘ高',
     getValue: (d: ShareData) => `${d.w} x ${d.h}`,
   },
   {
@@ -24,7 +24,7 @@ const ITEMS = [
   {
     icon: Lucide.Flag,
     text: '已插旗',
-    getValue: (d: ShareData) => `${d.f} : ${d.m}`,
+    getValue: (d: ShareData) => `${d.f} / ${d.m}`,
   },
   {
     icon: Lucide.Timer,

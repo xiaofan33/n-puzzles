@@ -15,10 +15,7 @@ export function useModel() {
   const { w, h, m } = model.boardConfig
   const cells = useMemo(() => model.toCells2D(), [w, h])
   const rerender = useForceRerender()
-  const getElapsedSeconds = useCallback(
-    () => Math.floor(model.elapsedMs / 1000),
-    [model],
-  )
+  const getElapsedMs = useCallback(() => model.elapsedMs, [model])
 
   return {
     w,
@@ -27,13 +24,12 @@ export function useModel() {
     cells,
     phase: model.phase,
     flagCount: model.flagCount,
-    elapsedMs: model.elapsedMs,
-    getElapsedSeconds,
     restore: rerender(model.restore),
     restart: rerender(model.restart),
     operate: rerender(model.operate),
     getAdjacentCells: model.getAdjacentCells,
     getCellMasks: model.getCellMasks,
+    getElapsedMs,
   }
 }
 

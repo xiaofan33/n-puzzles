@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { Lucide } from '@shared/components/icons'
 import { Shadcn } from '@shared/components/ui'
 import { useLocalStorage } from '@shared/hooks'
@@ -26,15 +26,19 @@ function Hud({
   phase,
   flagCount,
   totalMine,
-  getElapsedSeconds,
+  getElapsedMs,
   onNewGame,
 }: {
   phase: GamePhase
   flagCount: number
   totalMine: number
-  getElapsedSeconds: () => number
+  getElapsedMs: () => number
   onNewGame: () => void
 }) {
+  const getElapsedSeconds = useCallback(
+    () => Math.floor(getElapsedMs() / 1000),
+    [getElapsedMs],
+  )
   const [seconds, setSeconds] = useState(getElapsedSeconds)
 
   useEffect(() => {
@@ -90,7 +94,7 @@ export default function () {
     DEFAULT_SETTINGS,
   )
   const model = useModel()
-  const { w, h, m, phase, flagCount, cells, getElapsedSeconds } = model
+  const { w, h, m, phase, flagCount, cells, getElapsedMs } = model
   const isReady = phase === 'ready'
 
   // Restore a shared game from the route hash once, then drop the parameter
@@ -137,7 +141,7 @@ export default function () {
       m,
       f: flagCount,
       cellMasks: model.getCellMasks(),
-      elapsedMs: model.elapsedMs,
+      elapsedMs: getElapsedMs(),
     }
   }
 
@@ -166,7 +170,7 @@ export default function () {
             phase={phase}
             flagCount={flagCount}
             totalMine={m}
-            getElapsedSeconds={getElapsedSeconds}
+            getElapsedMs={getElapsedMs}
             onNewGame={handleNewGame}
           />
           <CellContainer

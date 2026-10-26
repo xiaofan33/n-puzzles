@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'node:path'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/preview/' : '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -11,4 +12,4 @@ export default defineConfig({
       '@demos': resolve(import.meta.dirname, './demos'),
     },
   },
-})
+}))
