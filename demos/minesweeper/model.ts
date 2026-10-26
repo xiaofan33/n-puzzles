@@ -4,7 +4,11 @@ import {
   createBoard,
   createTimer,
 } from '@shared/utils'
-import { FIRST_CLICK_SAFE_COUNT, type BoardConfig } from './preset'
+import {
+  DEFAULT_BOARD_CONFIG,
+  FIRST_CLICK_SAFE_COUNT,
+  type BoardConfig,
+} from './preset'
 
 export type GamePhase = 'ready' | 'playing' | 'won' | 'lost'
 export type Operation = 'reveal' | 'toggle-flag' | 'chord-reveal'
@@ -31,13 +35,15 @@ const CELL_FLAGS = {
   mine: 1 << 2, // 0b100
 } as const
 
-export function createModel(props: GameProps) {
+const ALL_CELL_FLAGS = CELL_FLAGS.reveal | CELL_FLAGS.flag | CELL_FLAGS.mine
+
+export function createModel(props: GameProps = DEFAULT_BOARD_CONFIG) {
   let phase: GamePhase = 'ready'
   let cells: Cell[] = []
   let flagIndices: Set<number> = new Set()
   let mineIndices: number[] = []
-  let mineCount = 0
-  let remainingSafeCount = 0
+  let mineCount = props.m
+  let remainingSafeCount = props.w * props.h - props.m
   let adjacentCellsMap = new WeakMap<Cell, Cell[]>()
 
   const board = createBoard(props)
@@ -77,8 +83,13 @@ export function createModel(props: GameProps) {
 
     if (cellMasks?.length) {
       applyCellMasks(cellMasks)
-      timer.start()
-      phase = 'playing'
+      if (remainingSafeCount === 0) {
+        phase = 'won'
+        revealAll()
+      } else {
+        timer.start()
+        phase = 'playing'
+      }
     }
   }
 
@@ -181,8 +192,23 @@ export function createModel(props: GameProps) {
     const revealed: Cell[] = []
     for (let i = 0; i < cellMasks.length; i += 2) {
       const index = cellMasks[i]
-      const cell = cells[index]
       const mask = cellMasks[i + 1]
+      if (!Number.isInteger(index) || index < 0 || index >= cells.length) {
+        throw new RangeError(`applyCellMasks: index (${index}) is out of range`)
+      }
+      if (!Number.isInteger(mask) || mask < 0 || mask > ALL_CELL_FLAGS) {
+        throw new RangeError(`applyCellMasks: mask (${mask}) is invalid`)
+      }
+      if (
+        (mask & CELL_FLAGS.reveal) !== 0 &&
+        (mask & (CELL_FLAGS.flag | CELL_FLAGS.mine)) !== 0
+      ) {
+        throw new RangeError(
+          `applyCellMasks: cell ${index} cannot be revealed and flagged/mined at once`,
+        )
+      }
+
+      const cell = cells[index]
       if (mask & CELL_FLAGS.reveal) {
         cell.view = 'revealed'
         revealed.push(cell)
@@ -197,6 +223,13 @@ export function createModel(props: GameProps) {
         mineIndices.push(index)
       }
     }
+
+    if (remainingSafeCount < 0) {
+      throw new RangeError(
+        'applyCellMasks: revealed cells exceed the number of safe cells',
+      )
+    }
+
     revealed.forEach(ensureAdjacentMineCount)
   }
 
@@ -268,6 +301,8 @@ export function createModel(props: GameProps) {
     }
   }
 
+  restore(props)
+
   return {
     restore,
     restart,
@@ -285,6 +320,9 @@ export function createModel(props: GameProps) {
     },
     get flagCount() {
       return flagIndices.size
+    },
+    get phase() {
+      return phase
     },
   }
 }

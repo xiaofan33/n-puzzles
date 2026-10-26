@@ -6,7 +6,7 @@ export interface BoardConfig extends Readonly<GridSize> {
 
 export interface Preset {
   readonly id: 'easy' | 'medium' | 'hard'
-  readonly title: string
+  readonly label: string
   readonly board: BoardConfig
 }
 
@@ -17,15 +17,15 @@ export const DEFAULT_BOARD_CONFIG: BoardConfig = Object.freeze({
 })
 
 export const PRESET_LIST: readonly Preset[] = Object.freeze([
-  Object.freeze({ id: 'easy', title: '简单', board: DEFAULT_BOARD_CONFIG }),
+  Object.freeze({ id: 'easy', label: '简单', board: DEFAULT_BOARD_CONFIG }),
   Object.freeze({
     id: 'medium',
-    title: '中等',
+    label: '中等',
     board: Object.freeze({ w: 16, h: 16, m: 40 }),
   }),
   Object.freeze({
     id: 'hard',
-    title: '困难',
+    label: '困难',
     board: Object.freeze({ w: 30, h: 16, m: 99 }),
   }),
 ])

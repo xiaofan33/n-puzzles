@@ -34,11 +34,13 @@ const sketchLines = Array.from({ length: 72 }, () => {
   }
 })
 
+const routeIdFromHash = () => location.hash.slice(2).split('?')[0]
+
 export default function App() {
-  const [routeId, setRouteId] = useState(() => location.hash.slice(2))
+  const [routeId, setRouteId] = useState(routeIdFromHash)
 
   useEffect(() => {
-    const handleHashChange = () => setRouteId(location.hash.slice(2))
+    const handleHashChange = () => setRouteId(routeIdFromHash())
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])

@@ -1,17 +1,11 @@
 import type { GameProps } from './model'
 
 /**
- * Format seconds into MM:SS.
- *
- * - fractional seconds are truncated
- * - non-finite input is treated as 0
- * - minutes are capped at 99 so the display never exceeds two digits
+ * Format seconds into MM:SS; fractional seconds are truncated.
  */
 export function formatTime(seconds: number) {
-  const totalSeconds = Number.isFinite(seconds)
-    ? Math.max(0, Math.floor(seconds))
-    : 0
-  const minutes = Math.min(Math.floor(totalSeconds / 60), 99)
+  const totalSeconds = Math.floor(seconds)
+  const minutes = Math.floor(totalSeconds / 60)
   const s = totalSeconds % 60
 
   return `${minutes.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
@@ -195,6 +189,43 @@ export function encodeShareData(data: GameProps) {
   return `v1:${bytesToBase64Url(header)}.${bytesToBase64Url(cellBytes)}`
 }
 
+/** Query parameter that carries a shared snapshot; it lives inside the route hash. */
+export const SHARE_PARAM = 'g'
+
+function splitHashQuery(hash: string) {
+  const [path, query = ''] = hash.slice(1).split('?')
+  return { path, params: new URLSearchParams(query) }
+}
+
+/** Reads the shared snapshot parameter from the current route hash. */
+export function readShareParam() {
+  return splitHashQuery(location.hash).params.get(SHARE_PARAM)
+}
+
+/** Removes the shared snapshot parameter from the current route hash. */
+export function clearShareParam() {
+  const { path, params } = splitHashQuery(location.hash)
+  params.delete(SHARE_PARAM)
+  const query = params.toString()
+  history.replaceState(
+    null,
+    '',
+    `${location.pathname}${location.search}#${path}${query ? `?${query}` : ''}`,
+  )
+}
+
+/**
+ * Builds the current page URL with the snapshot encoded into the route hash,
+ * e.g. `#/minesweeper?g=v1:...`.
+ */
+export function buildShareUrl(data: GameProps) {
+  const url = new URL(window.location.href)
+  const { path, params } = splitHashQuery(url.hash)
+  params.set(SHARE_PARAM, encodeShareData(data))
+  url.hash = `#${path}?${params.toString()}`
+  return url.toString()
+}
+
 /**
  * Decodes a share string produced by `encodeShareData`.
  * @throws {Error} if the format, header or cell payload is invalid
@@ -245,20 +276,69 @@ export function decodeShareData(data: string): GameProps {
   return { w, h, m, elapsedMs, cellMasks }
 }
 
-let cachedIsTouch: boolean | undefined
+/**
+ * Creates a `useSyncExternalStore`-compatible store backed by a CSS media
+ * query. The underlying `MediaQueryList` is created lazily and reused.
+ */
+function createMediaQueryStore(query: string) {
+  let queryList: MediaQueryList | undefined
+  const getQueryList = () => (queryList ??= window.matchMedia(query))
+
+  return {
+    getSnapshot: () =>
+      typeof window === 'undefined' ? false : getQueryList().matches,
+    subscribe(onChange: () => void) {
+      if (typeof window === 'undefined') return () => {}
+
+      const list = getQueryList()
+      list.addEventListener('change', onChange)
+      return () => list.removeEventListener('change', onChange)
+    },
+  }
+}
+
+/** Detects a coarse-pointer (touch-first) primary input. */
+export const { getSnapshot: isTouchDevice, subscribe: subscribeTouchDevice } =
+  createMediaQueryStore('(hover: none) and (pointer: coarse)')
 
 /**
- * Detects a coarse-pointer (touch-first) primary input.
- * The result is cached and kept in sync with the media query.
+ * Copies text to the clipboard. Falls back to a temporary textarea when the
+ * async Clipboard API is unavailable, which is the case on non-HTTPS origins
+ * (e.g. a phone opening the dev server over the LAN IP).
  */
-export function isTouchDevice() {
-  if (typeof window === 'undefined') return false
+export async function copyText(text: string) {
+  if (!navigator.clipboard?.writeText) return copyTextLegacy(text)
 
-  if (cachedIsTouch === undefined) {
-    const query = window.matchMedia('(hover: none) and (pointer: coarse)')
-    cachedIsTouch = query.matches
-    query.addEventListener('change', ({ matches }) => (cachedIsTouch = matches))
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    return copyTextLegacy(text)
+  }
+}
+
+function copyTextLegacy(text: string) {
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.top = '0'
+  textarea.style.left = '0'
+  textarea.style.fontSize = '16px'
+  textarea.style.opacity = '0'
+  document.body.append(textarea)
+
+  textarea.focus({ preventScroll: true })
+  textarea.select()
+  textarea.setSelectionRange(0, text.length)
+
+  let copied: boolean
+  try {
+    copied = document.execCommand('copy')
+  } catch {
+    copied = false
   }
 
-  return cachedIsTouch
+  textarea.remove()
+  return copied
 }
